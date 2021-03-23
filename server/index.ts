@@ -1,6 +1,6 @@
 const bodyParser = require('body-parser');
 import { usersCollection } from "./db";
-import { createUser, getUserById, removeUser, updateUser } from "./service";
+import { createUser, getUserById, getUserListByLogin, removeUser, updateUser } from "./service";
 
 const PORT = 3000;
 const express = require('express');
@@ -32,7 +32,8 @@ app.get('/user', function(req, res){
 
 app.get('/user/search', function(req, res){
     const { starts_with, limits } = req.query;
-    
+    const userList = getUserListByLogin(starts_with, limits)
+    res.status(200).json(userList)
 });
 
 app.post('/user', function(req, res){
