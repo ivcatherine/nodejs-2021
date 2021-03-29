@@ -1,6 +1,8 @@
+const { userSchema, userIdSchema, userSearchSchema } = require("./utils/validation");
 const bodyParser = require('body-parser');
-import { usersCollection } from './db';
-import { createUser, getUserById, getUserListByLogin, removeUser, updateUser } from './service';
+const validator = require('express-joi-validation').createValidator({passError: true});
+const { usersCollection } = require('./db');
+const { createUser, getUserById, getUserListByLogin, removeUser, updateUser } = require('./service');
 
 const PORT = 3000;
 const express = require('express');
@@ -19,24 +21,21 @@ app.get('/', (req, res) => {
     res.json({ ok: true });
 });
 
-app.get('/user', (req, res) => {
+app.get('/user', validator.query(userIdSchema),(req, res) => {
     const { id } = req.query;
 
-    if (id) {
-        const user = getUserById(id);
-        res.status(200).json(user);
-    } else {
-        res.status(200).json(usersCollection);
-    }
+    const user = getUserById(id);
+    res.status(200).json(user);
 });
 
-app.get('/user/search', (req, res) => {
+app.get('/user/search', validator.query(userSearchSchema), (req, res) => {
     const { starts_with, limits } = req.query;
+
     const userList = getUserListByLogin(starts_with, limits);
     res.status(200).json(userList);
 });
 
-app.post('/user', (req, res) => {
+app.post('/user', validator.body(userSchema), (req, res) => {
     const { id, login, password, age } = req.body;
 
     const user = getUserById(id);
@@ -46,16 +45,23 @@ app.post('/user', (req, res) => {
     res.sendStatus(200);
 });
 
-app.put('/user', (req, res) => {
+app.put('/user', validator.body(userSchema), (req, res) => {
     const {  id, login, password, age } = req.body;
 
     updateUser({  id, login, password, age, isDeleted: false });
     res.sendStatus(200);
 });
 
-app.delete('/user', (req, res) => {
+app.delete('/user', validator.body(userIdSchema), (req, res) => {
     const { id } = req.body;
 
     removeUser(id);
     res.sendStatus(200);
 });
+
+app.use((err, req, res, next) => {
+    const { details } = err.error;
+    const errorMessages = details.map(item => item.message)
+    
+    res.status(400).json({"errors": errorMessages})
+})
