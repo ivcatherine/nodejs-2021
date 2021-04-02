@@ -1,9 +1,9 @@
-const { userSchema, userIdSchema, userSearchSchema } = require("./utils/validation");
-const bodyParser = require('body-parser');
-const validator = require('express-joi-validation').createValidator({passError: true});
-const { usersCollection } = require('./db');
-const { createUser, getUserById, getUserListByLogin, removeUser, updateUser } = require('./service');
+import { userSchema, userIdSchema, userSearchSchema } from './utils/validation';
+import bodyParser from 'body-parser';
+import joiValidator from 'express-joi-validation';
+import { createUser, getUserById, getUserListByLogin, removeUser, updateUser } from './service';
 
+const validator = joiValidator.createValidator({passError: true});
 const PORT = 3000;
 const express = require('express');
 const app = express();
@@ -25,6 +25,9 @@ app.get('/user', validator.query(userIdSchema),(req, res) => {
     const { id } = req.query;
 
     const user = getUserById(id);
+    if (!user) {
+        res.status(404).json({message: 'user not found'})
+    }
     res.status(200).json(user);
 });
 
@@ -64,4 +67,4 @@ app.use((err, req, res, next) => {
     const errorMessages = details.map(item => item.message)
     
     res.status(400).json({"errors": errorMessages})
-})
+});
