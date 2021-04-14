@@ -1,6 +1,7 @@
 export {};
 const { UserModel } = require('../models/user.model');
-const { usersCollection } = require('../db');
+const { Op } = require("sequelize");
+const { v4: uuidv4 } = require('uuid');
 
 type User = {
     id: string;
@@ -10,7 +11,7 @@ type User = {
     isDeleted: boolean;
 };
 
-const getUserById = async (id) => {
+const getUserById = async (id: string) => {
     const user = await UserModel.findByPk(id)
     if(user){
         return user.toJSON();
@@ -18,16 +19,14 @@ const getUserById = async (id) => {
     return null
 };
 
-//rewrite to use DB
-const getUserListByLogin = (substring, limits):User[] => {
-    const userList = usersCollection.filter(user => user.login.startsWith(substring) && user.isDeleted === false);
-    return userList.slice(0, limits);
+const getUserListByLogin = async (substring: string, limits: number) => {
+    const userList = await UserModel.findAll({ limit: limits, where : { isDeleted: false, login: { [Op.startsWith]: substring, } }})
+    return userList
 };
 
 const updateUser = async (user: User) => {
     const updatedUser = await UserModel.update({...user}, { where: { id: user.id }})
     return updatedUser;
-    
 };
 
 const createUser = async (user: User) => {
@@ -35,7 +34,7 @@ const createUser = async (user: User) => {
         login: user.login,
         age: user.age,
         password: user.password,
-        id: user.id,
+        id: uuidv4(),
         isDeleted: false
     });
     return createdUser.toJSON();

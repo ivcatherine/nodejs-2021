@@ -1,4 +1,4 @@
-const { userSchema, userIdSchema, userSearchSchema } = require('./utils/validation');
+const { userUpdateSchema, userCreateSchema, userIdSchema, userSearchSchema } = require('./utils/validation');
 const joiValidator = require('express-joi-validation');
 const { createUser, getUserById, getUserListByLogin, removeUser, updateUser } = require('./services/userService');
 const express = require('express');
@@ -18,25 +18,24 @@ app.get('/user', validator.query(userIdSchema), async (req, res) => {
     res.status(200).json(user);
 });
 
-// REWRITE TO DB
-app.get('/user/search', validator.query(userSearchSchema), (req, res) => {
+app.get('/user/search', validator.query(userSearchSchema), async (req, res) => {
     const { starts_with, limits } = req.query;
 
-    const userList = getUserListByLogin(starts_with, limits);
+    const userList = await getUserListByLogin(starts_with, limits);
     res.status(200).json(userList);
 });
 
-app.post('/user', validator.body(userSchema), async (req, res) => {
+app.post('/user', validator.body(userCreateSchema), async (req, res) => {
     const { id, login, password, age } = req.body;
 
     const user = await getUserById(id);
     if (!user) {
-        await createUser({ id, login, password, age, isDeleted: false });
+        await createUser({ login, password, age, isDeleted: false });
     }
     res.sendStatus(200);
 });
 
-app.put('/user', validator.body(userSchema), async (req, res) => {
+app.put('/user', validator.body(userUpdateSchema), async (req, res) => {
     const {  id, login, password, age } = req.body;
 
     await updateUser({  id, login, password, age, isDeleted: false });
