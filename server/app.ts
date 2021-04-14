@@ -1,9 +1,9 @@
-import { userSchema, userIdSchema, userSearchSchema } from './utils/validation';
-import joiValidator from 'express-joi-validation';
-import { createUser, getUserById, getUserListByLogin, removeUser, updateUser } from './services/userService';
+const { userSchema, userIdSchema, userSearchSchema } = require('./utils/validation');
+const joiValidator = require('express-joi-validation');
+const { createUser, getUserById, getUserListByLogin, removeUser, updateUser } = require('./services/userService');
+const express = require('express');
 
 const validator = joiValidator.createValidator({passError: true});
-const express = require('express');
 export const app = express();
 
 app.use(express.json());

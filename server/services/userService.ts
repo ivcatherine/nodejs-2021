@@ -1,7 +1,8 @@
-import { User } from '..';
-import { usersCollection } from '../db';
+export {};
+const { UserModel } = require('../models/user.model');
+const { usersCollection } = require('../db');
 
-export type User = {
+type User = {
     id: string;
     login: string;
     password: string;
@@ -9,8 +10,8 @@ export type User = {
     isDeleted: boolean;
 };
 
-export const getUserById = async (id) => {
-    const user = await User.findByPk(id)
+const getUserById = async (id) => {
+    const user = await UserModel.findByPk(id)
     if(user){
         return user.toJSON();
     }
@@ -18,19 +19,19 @@ export const getUserById = async (id) => {
 };
 
 //rewrite to use DB
-export const getUserListByLogin = (substring, limits):User[] => {
+const getUserListByLogin = (substring, limits):User[] => {
     const userList = usersCollection.filter(user => user.login.startsWith(substring) && user.isDeleted === false);
     return userList.slice(0, limits);
 };
 
-export const updateUser = async (user: User) => {
-    const updatedUser = await User.update({...user}, { where: { id: user.id }})
+const updateUser = async (user: User) => {
+    const updatedUser = await UserModel.update({...user}, { where: { id: user.id }})
     return updatedUser;
     
 };
 
-export const createUser = async (user: User) => {
-    const createdUser = await User.create({
+const createUser = async (user: User) => {
+    const createdUser = await UserModel.create({
         login: user.login,
         age: user.age,
         password: user.password,
@@ -40,7 +41,15 @@ export const createUser = async (user: User) => {
     return createdUser.toJSON();
 };
 
-export const removeUser = async (id: string) => {
-    const deletedUser = await User.update({isDeleted: true}, { where: { id }});
+const removeUser = async (id: string) => {
+    const deletedUser = await UserModel.update({isDeleted: true}, { where: { id }});
     return deletedUser;
 };
+
+module.exports = {
+    getUserById,
+    createUser,
+    removeUser,
+    updateUser,
+    getUserListByLogin,
+}

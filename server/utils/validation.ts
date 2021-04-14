@@ -1,17 +1,23 @@
 const Joi = require('joi')
  
-export const userSchema = Joi.object({
+const userSchema = Joi.object({
     id: Joi.string().required(),
     login: Joi.string().min(3).required(),
-    password: Joi.string().required(),
+    password: Joi.string().required().pattern(new RegExp('[a-z]')).pattern(new RegExp('[0-9]')),
     age: Joi.number().min(4).max(130).required()
 })
 
-export const userIdSchema = Joi.object({
+const userIdSchema = Joi.object({
     id: Joi.string().required()
 })
 
-export const userSearchSchema = Joi.object({
+const userSearchSchema = Joi.object({
     starts_with: Joi.string(),
     limits: Joi.number()
 })
+
+module.exports = {
+    userSchema,
+    userIdSchema,
+    userSearchSchema,
+}

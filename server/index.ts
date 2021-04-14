@@ -1,44 +1,25 @@
-import { DataTypes, Sequelize } from 'sequelize';
-import { app } from './app'
-import { testSequalizer } from './utils/sequalizer-utils';
+export {};
+const sequelize = require('./sequelize');
+const { app } = require('./app');
 
 const PORT = 3000;
 
-export const sequelize = new Sequelize('nodejs-2021', 'postgres', 'qwerty1234', {
-    host: 'localhost',
-    dialect: 'postgres'
-})
+async function init() {
+  try {
+      await sequelize.authenticate();
+      console.log('Connection has been established successfully.');
+  } catch (error) {
+      console.error('Unable to connect to the database:', error);
+  }
+  
+  app.listen(PORT, err => {
+      if (err) {
+          return console.error(err);
+      }
+      return console.log(`server is listening on ${PORT}`);
+  });
+}
 
-testSequalizer()
+init()
 
-app.listen(PORT, err => {
-    if (err) {
-        return console.error(err);
-    }
-    return console.log(`server is listening on ${PORT}`);
-});
-
-// TODO: move it to models
-export const User = sequelize.define('users', {
-    id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      primaryKey: true
-    },
-    login: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    age: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false
-    },
-});
+module.exports = sequelize
