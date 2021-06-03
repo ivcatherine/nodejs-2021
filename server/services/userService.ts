@@ -2,14 +2,7 @@ export {};
 const { UserModel } = require('../models/user.model');
 const { Op } = require("sequelize");
 const { v4: uuidv4 } = require('uuid');
-
-type User = {
-    id: string;
-    login: string;
-    password: string;
-    age: number;
-    isDeleted: boolean;
-};
+import { User } from '../types/index'
 
 const getUserById = async (id: string) => {
     const user = await UserModel.findByPk(id)
@@ -25,7 +18,7 @@ const getUserListByLogin = async (substring: string, limits: number) => {
 };
 
 const updateUser = async (user: User) => {
-    const updatedUser = await UserModel.update({...user}, { where: { id: user.id }})
+    const [ _ , updatedUser] = await UserModel.update({...user}, { where: { id: user.id }, returning: true })    
     return updatedUser;
 };
 
@@ -41,8 +34,8 @@ const createUser = async (user: User) => {
 };
 
 const removeUser = async (id: string) => {
-    const deletedUser = await UserModel.update({isDeleted: true}, { where: { id }});
-    return deletedUser;
+    await UserModel.update({isDeleted: true}, { where: { id }});
+    return null;
 };
 
 module.exports = {

@@ -18,8 +18,8 @@ async function init() {
       }
       return console.log(`server is listening on ${PORT}`);
   });
-}
+};
 
-init()
+init();
 
-module.exports = sequelize
+module.exports = sequelize;

@@ -2,28 +2,22 @@ export {};
 const { DataTypes } = require('sequelize');
 const sequelize = require("../sequelize");
 
-const UserModel = sequelize.define('users', {
+const GroupModel = sequelize.define('groups', {
     id: {
       type: DataTypes.UUID,
       allowNull: false,
       primaryKey: true
     },
-    login: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    age: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
+    permissions: {
+      type: DataTypes.ARRAY(DataTypes.ENUM({
+        values: ['READ', 'WRITE', 'DELETE', 'SHARE', 'UPLOAD_FILES']
+      })),
       allowNull: false
     },
 });
 
-module.exports = { UserModel };
+module.exports = { GroupModel };

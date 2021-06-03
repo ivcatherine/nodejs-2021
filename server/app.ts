@@ -1,53 +1,13 @@
-const { userUpdateSchema, userCreateSchema, userIdSchema, userSearchSchema } = require('./utils/validation');
-const joiValidator = require('express-joi-validation');
-const { createUser, getUserById, getUserListByLogin, removeUser, updateUser } = require('./services/userService');
+export {}
 const express = require('express');
-
-const validator = joiValidator.createValidator({passError: true});
-export const app = express();
-
+const app = express();
+const { userRouter } = require("./routers/userRouter")
+const { groupRouter } = require("./routers/groupRouter")
+const { createGroup } = require("./services/groupService")
 app.use(express.json());
 
-app.get('/user', validator.query(userIdSchema), async (req, res) => {
-    const { id } = req.query;
-
-    const user = await getUserById(id);
-    if (!user) {
-        res.status(404).json({errors: ['user not found']})
-    }
-    res.status(200).json(user);
-});
-
-app.get('/user/search', validator.query(userSearchSchema), async (req, res) => {
-    const { starts_with, limits } = req.query;
-
-    const userList = await getUserListByLogin(starts_with, limits);
-    res.status(200).json(userList);
-});
-
-app.post('/user', validator.body(userCreateSchema), async (req, res) => {
-    const { id, login, password, age } = req.body;
-
-    const user = await getUserById(id);
-    if (!user) {
-        await createUser({ login, password, age, isDeleted: false });
-    }
-    res.sendStatus(200);
-});
-
-app.put('/user', validator.body(userUpdateSchema), async (req, res) => {
-    const {  id, login, password, age } = req.body;
-
-    await updateUser({  id, login, password, age, isDeleted: false });
-    res.sendStatus(200);
-});
-
-app.delete('/user', validator.body(userIdSchema), async (req, res) => {
-    const { id } = req.body;
-
-    await removeUser(id);
-    res.sendStatus(200);
-});
+app.use('/users', userRouter);
+app.use('/groups', groupRouter);
 
 app.use((err, req, res, next) => {
     const { details } = err.error;
@@ -55,3 +15,7 @@ app.use((err, req, res, next) => {
     
     res.status(400).json({"errors": errorMessages})
 });
+
+module.exports = {
+    app
+}
