@@ -1,5 +1,6 @@
 export {};
 const { GroupModel } = require('../models/group.model');
+const { UserGroupModel } = require('../models/userGroup.model');
 const { v4: uuidv4 } = require('uuid');
 import { Group } from '../types/index'
 
@@ -32,6 +33,7 @@ const createGroup = async (group: Group) => {
 
 const removeGroup = async (id: string) => {
     await GroupModel.destroy({ where: { id }});
+    await UserGroupModel.destroy({ where: {groupId : id}})
     return null;
 };
 

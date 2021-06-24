@@ -9,33 +9,34 @@ groupRouter.get('/', validator.query(groupGetSchema), async (req, res) => {
     if (!!id) {     
         const group = await getGroupById(id);
         if (!group) {
-            res.json({errors: ['group not found']}).status(404)
+            res.status(404).json({errors: ['group not found']});
         }
-        res.json(group).status(200);
+        res.status(200).json(group);
     }
-    const groups = await getAllGroups()
-    res.json(groups).status(200)
+
+    const groups = await getAllGroups();
+    res.status(200).json(groups);
 });
 
 groupRouter.post('/', validator.body(groupCreateSchema), async (req, res) => {
     const { name, permissions } = req.body;
 
     const group = await createGroup({ name, permissions });
-    res.json(group).status(200);
+    res.status(200).json(group);
 });
 
 groupRouter.put('/', validator.body(groupUpdateSchema), async (req, res) => {
     const {  id, name, permissions } = req.body;
 
     const group = await updateGroup({  id, name, permissions });    
-    res.json(group).status(200);
+    res.status(200).json(group);
 });
 
 groupRouter.delete('/', validator.body(groupDeleteSchema), async (req, res) => {
     const { id } = req.body;
 
     await removeGroup(id);
-    res.json({ deletedId: id}).status(200);
+    res.status(200).json({ deletedId: id});
 });
 
 module.exports = {

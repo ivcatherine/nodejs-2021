@@ -16,7 +16,6 @@ const userCreateSchema = Joi.object({
 });
 
 const userSearchSchema = Joi.object({
-    id: Joi.string(),
     starts_with: Joi.string(),
     limits: Joi.number()
 });

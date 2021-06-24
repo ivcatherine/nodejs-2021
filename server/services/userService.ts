@@ -1,5 +1,7 @@
 export {};
 const { UserModel } = require('../models/user.model');
+const { UserGroupModel } = require('../models/userGroup.model');
+const sequelize = require('../sequelize');
 const { Op } = require("sequelize");
 const { v4: uuidv4 } = require('uuid');
 import { User } from '../types/index'
@@ -9,7 +11,7 @@ const getUserById = async (id: string) => {
     if(user){
         return user.toJSON();
     }
-    return null
+    return null;
 };
 
 const getUserListByLogin = async (substring: string, limits: number) => {
@@ -18,7 +20,7 @@ const getUserListByLogin = async (substring: string, limits: number) => {
 };
 
 const updateUser = async (user: User) => {
-    const [ _ , updatedUser] = await UserModel.update({...user}, { where: { id: user.id }, returning: true })    
+    const [ _ , updatedUser] = await UserModel.update({...user}, { where: { id: user.id }, returning: true }); 
     return updatedUser;
 };
 
@@ -38,10 +40,27 @@ const removeUser = async (id: string) => {
     return null;
 };
 
+const addUsersToGroup = async (groupId: string, userIds: string[]) => {
+    let transaction;
+    
+    try{
+        transaction = await sequelize.transaction();
+        for (const userId of userIds) {
+            UserGroupModel.create({userId, groupId});
+        }
+        await transaction.commit();
+    } catch (err) {
+        if (transaction) {
+            await transaction.rollback();
+        }
+    }
+};
+
 module.exports = {
     getUserById,
     createUser,
     removeUser,
     updateUser,
     getUserListByLogin,
+    addUsersToGroup,
 };

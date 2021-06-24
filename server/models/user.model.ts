@@ -1,6 +1,8 @@
 export {};
 const { DataTypes } = require('sequelize');
 const sequelize = require("../sequelize");
+const { GroupModel } = require("./group.model")
+const { UserGroupModel } = require("./userGroup.model")
 
 const UserModel = sequelize.define('users', {
     id: {
@@ -25,5 +27,8 @@ const UserModel = sequelize.define('users', {
       allowNull: false
     },
 });
+
+UserModel.belongsToMany(GroupModel, { through: UserGroupModel, as:'userId' })
+GroupModel.belongsToMany(UserModel, { through: UserGroupModel, as: 'groupId' })
 
 module.exports = { UserModel };
