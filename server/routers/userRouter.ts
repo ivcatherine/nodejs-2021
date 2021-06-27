@@ -4,14 +4,18 @@ const { createUser, getUserById, getUserListByLogin, addUsersToGroup, removeUser
 const { userUpdateSchema, userCreateSchema, userIdSchema, userSearchSchema, validator } = require('../utils/validation');
 const userRouter = express.Router();
 
-userRouter.get('/', validator.query(userIdSchema), async (req, res) => {
+userRouter.get('/', validator.query(userIdSchema), async (req, res, next) => {
     const { id } = req.query;
-  
-    const user = await getUserById(id);
-    if (!user) {
-        res.status(404).json({errors: ['user not found']})
+    try{
+        const user = await getUserById(id);
+        if (user) {
+            res.status(200).json(user);
+        } else {
+            next({ status: 404, messages: ['User not found']})
+        }
+    } catch(e) {
+        next(e);
     }
-    res.status(200).json(user);
 });
 
 userRouter.get('/search', validator.query(userSearchSchema), async (req, res) => {

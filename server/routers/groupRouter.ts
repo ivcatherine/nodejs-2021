@@ -4,12 +4,12 @@ const { getAllGroups, getGroupById, createGroup, removeGroup, updateGroup } = re
 const { groupUpdateSchema, groupCreateSchema, groupGetSchema, groupDeleteSchema, validator } = require('../utils/validation');
 const groupRouter = express.Router();
 
-groupRouter.get('/', validator.query(groupGetSchema), async (req, res) => {
+groupRouter.get('/', validator.query(groupGetSchema), async (req, res, next) => {
     const { id } = req.query;
-    if (!!id) {     
+    if (id) {     
         const group = await getGroupById(id);
         if (!group) {
-            res.status(404).json({errors: ['group not found']});
+            next(404, { messages: ['Group not found']});
         }
         res.status(200).json(group);
     }
