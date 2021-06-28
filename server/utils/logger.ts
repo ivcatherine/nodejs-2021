@@ -17,4 +17,11 @@ const logger = winston.createLogger({
   ]
 });
 
-module.exports = logger
+const logAndFormat = (methodName, params, err) => {
+  logger.error(`${new Date().toISOString()} function: ${methodName}, parameters: ${params.join(',')}, error: ${err}`);
+}
+
+module.exports = {
+  logger, 
+  logAndFormat
+}

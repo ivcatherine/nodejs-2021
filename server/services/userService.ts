@@ -1,4 +1,5 @@
 export {};
+const { logAndFormat } = require("../utils/logger");
 const { UserModel } = require('../models/user.model');
 const { UserGroupModel } = require('../models/userGroup.model');
 const sequelize = require('../sequelize');
@@ -6,38 +7,71 @@ const { Op } = require("sequelize");
 const { v4: uuidv4 } = require('uuid');
 import { User } from '../types/index'
 
-const getUserById = async (id: string) => {
-    const user = await UserModel.findByPk(id)
-    if(user){
-        return user.toJSON();
+const loginUser = async (login: string, password: string) => {
+    try{
+        const user = await UserModel.findOne({ where: { login, password }});
+
+        return user ?? null
+    }catch(err){
+        logAndFormat('loginUser', [login, password], err)
     }
-    return null;
+}
+
+const getUserById = async (id: string) => {
+    try{
+        const user = await UserModel.findByPk(id);
+
+        return user.toJSON() ?? null;
+    }catch(err){
+        logAndFormat('getUserById', [id], err)
+    }
+
 };
 
 const getUserListByLogin = async (substring: string, limits: number) => {
-    const userList = await UserModel.findAll({ limit: limits, where : { isDeleted: false, login: { [Op.startsWith]: substring, } }})
-    return userList
+    try{
+        const userList = await UserModel.findAll({ limit: limits, where : { isDeleted: false, login: { [Op.startsWith]: substring, } }})
+        
+        return userList
+    }catch(err){
+        logAndFormat('getUserListByLogin', [substring, limits], err)
+    }
 };
 
 const updateUser = async (user: User) => {
-    const [ _ , updatedUser] = await UserModel.update({...user}, { where: { id: user.id }, returning: true }); 
-    return updatedUser;
+    try{
+        const [ _ , updatedUser] = await UserModel.update({...user}, { where: { id: user.id }, returning: true }); 
+        
+        return updatedUser;
+    }catch(err){
+        logAndFormat('updateUser', [user], err)
+    }
 };
 
 const createUser = async (user: User) => {
-    const createdUser = await UserModel.create({
-        login: user.login,
-        age: user.age,
-        password: user.password,
-        id: uuidv4(),
-        isDeleted: false
-    });
-    return createdUser.toJSON();
+    try{
+        const createdUser = await UserModel.create({
+            login: user.login,
+            age: user.age,
+            password: user.password,
+            id: uuidv4(),
+            isDeleted: false
+        });
+
+        return createdUser.toJSON();
+    }catch(err){
+        logAndFormat('createUser', [user], err)
+    }
 };
 
 const removeUser = async (id: string) => {
-    await UserModel.update({isDeleted: true}, { where: { id }});
-    return null;
+    try{
+        await UserModel.update({isDeleted: true}, { where: { id }});
+        
+        return null;
+    }catch(err){
+        logAndFormat('removeUser', [id], err)
+    }
 };
 
 const addUsersToGroup = async (groupId: string, userIds: string[]) => {
@@ -53,10 +87,12 @@ const addUsersToGroup = async (groupId: string, userIds: string[]) => {
         if (transaction) {
             await transaction.rollback();
         }
+        logAndFormat('addUsersToGroup', [groupId, userIds], err)
     }
 };
 
 module.exports = {
+    loginUser,
     getUserById,
     createUser,
     removeUser,

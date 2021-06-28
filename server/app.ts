@@ -1,13 +1,15 @@
 export {}
 const express = require('express');
 const app = express();
-const logger = require("./utils/logger")
-const exceptionHandlers = require("./utils/exceptionHandlers")
-const { userRouter } = require("./routers/userRouter")
-const { groupRouter } = require("./routers/groupRouter")
+const {logger} = require("./utils/logger");
+const exceptionHandlers = require("./utils/exceptionHandlers");
+const { userRouter } = require("./routers/userRouter");
+const { groupRouter } = require("./routers/groupRouter");
+const { loginRouter } = require("./routers/loginRouter");
 
 app.use(express.json());
 
+app.use('/login', loginRouter);
 app.use((req, res, next) => {
     logger.info(`time: ${new Date().toISOString()}`)
     logger.info(`route: ${req.originalUrl}`)
@@ -40,7 +42,7 @@ app.use((err, req, res, next) => {
             next({ status: err.error.status, messages: errorMessages });
         }
     }
-
+    next(err)
 });
 
 app.use(({status = 500, messages = ["Internal Server Error"]}, req, res, next) => {

@@ -1,5 +1,5 @@
 export {}
-const logger = require("./logger")
+const {logger} = require("./logger")
 
 const exceptionHandlers = () => {
   process

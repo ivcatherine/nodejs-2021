@@ -1,10 +1,11 @@
 export {}
 const express = require("express");
+const checkToken = require("../utils/tokenChecker");
 const { createUser, getUserById, getUserListByLogin, addUsersToGroup, removeUser, updateUser } = require('../services/userService');
 const { userUpdateSchema, userCreateSchema, userIdSchema, userSearchSchema, validator } = require('../utils/validation');
 const userRouter = express.Router();
 
-userRouter.get('/', validator.query(userIdSchema), async (req, res, next) => {
+userRouter.get('/', checkToken, validator.query(userIdSchema), async (req, res, next) => {
     const { id } = req.query;
     try{
         const user = await getUserById(id);
@@ -13,46 +14,61 @@ userRouter.get('/', validator.query(userIdSchema), async (req, res, next) => {
         } else {
             next({ status: 404, messages: ['User not found']})
         }
-    } catch(e) {
-        next(e);
+    } catch(err) {
+        next(err)
     }
 });
 
-userRouter.get('/search', validator.query(userSearchSchema), async (req, res) => {
+userRouter.get('/search', checkToken, validator.query(userSearchSchema), async (req, res, next) => {
     const { starts_with, limits } = req.query;
-
-    if (starts_with && limits) {
-        const userList = await getUserListByLogin(starts_with, limits);
-        res.status(200).json(userList);
+    try{
+        if (starts_with && limits) {
+            const userList = await getUserListByLogin(starts_with, limits);
+            res.status(200).json(userList);
+        }
+    } catch(err) {
+        next(err)
     }
 });
 
-userRouter.post('/addUsersToGroup', async (req, res) => {
+userRouter.post('/addUsersToGroup', checkToken, async (req, res, next) => {
     const { groupId, userIds } = req.body
-    
-    const userGroupRecords = await addUsersToGroup(groupId, userIds)
-    res.status(200).json(userGroupRecords);
+    try{
+        const userGroupRecords = await addUsersToGroup(groupId, userIds)
+        res.status(200).json(userGroupRecords);
+    } catch(err) {
+        next(err)
+    }
 })
 
-userRouter.post('/', validator.body(userCreateSchema), async (req, res) => {
+userRouter.post('/', checkToken, validator.body(userCreateSchema), async (req, res, next) => {
     const { login, password, age } = req.body;
-
-    const user = await createUser({ login, password, age });
-    res.status(200).json(user);
+    try{
+        const user = await createUser({ login, password, age });
+        res.status(200).json(user);
+    } catch(err) {
+        next(err)
+    }
 });
 
-userRouter.put('/', validator.body(userUpdateSchema), async (req, res) => {
+userRouter.put('/', checkToken, validator.body(userUpdateSchema), async (req, res, next) => {
     const {  id, login, password, age } = req.body;
-
-    const user = await updateUser({  id, login, password, age });    
-    res.status(200).json(user);
+    try{
+        const user = await updateUser({  id, login, password, age });    
+        res.status(200).json(user);
+    } catch(err) {
+        next(err)
+    }
 });
 
-userRouter.delete('/', validator.body(userIdSchema), async (req, res) => {
+userRouter.delete('/', checkToken, validator.body(userIdSchema), async (req, res, next) => {
     const { id } = req.body;
-
-    await removeUser(id);
-    res.status(200).json({ deletedId: id});
+    try{
+        await removeUser(id);
+        res.status(200).json({ deletedId: id});
+    } catch(err) {
+        next(err)
+    }
 });
 
 module.exports = {
