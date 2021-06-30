@@ -1,19 +1,52 @@
 export {}
 const express = require('express');
 const app = express();
-const { userRouter } = require("./routers/userRouter")
-const { groupRouter } = require("./routers/groupRouter")
+const {logger} = require("./utils/logger");
+const exceptionHandlers = require("./utils/exceptionHandlers");
+const { userRouter } = require("./routers/userRouter");
+const { groupRouter } = require("./routers/groupRouter");
+const { loginRouter } = require("./routers/loginRouter");
 
 app.use(express.json());
 
+app.use('/login', loginRouter);
+app.use((req, res, next) => {
+    logger.info(`time: ${new Date().toISOString()}`)
+    logger.info(`route: ${req.originalUrl}`)
+    logger.info(`body params: ${JSON.stringify(req.body)}`)
+    
+    next();
+});
 app.use('/users', userRouter);
 app.use('/groups', groupRouter);
 
-app.use((err, req, res, next) => {
-    const { details } = err.error;
+exceptionHandlers();
+
+app.use((err, req, res, next) => { 
+    if (err.messages) {
+        const { messages, status = 500 } = err
+        next({ status, messages })
+    }
+
+    if (err && !err.error) {
+        next({ status: err.status, err })
+    }
+
+    if (err && err.error) { 
+        const { details } = err.error;
+        const errorMessages = details.map(item => item.message)
     
-    const errorMessages = details.map(item => item.message)
-    res.status(500).json({"errors": errorMessages})
+        if (err.error.isJoi) {
+            next({ status: 400, messages: errorMessages })
+        } else {
+            next({ status: err.error.status, messages: errorMessages });
+        }
+    }
+    next(err)
+});
+
+app.use(({status = 500, messages = ["Internal Server Error"]}, req, res, next) => {
+    res.status(status).json({"errorMessages": messages})
 });
 
 module.exports = {
