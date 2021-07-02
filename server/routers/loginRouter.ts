@@ -1,14 +1,17 @@
 export {}
 const express = require("express");
 const loginRouter = express.Router();
+const { UserModel } = require('../models/user.model');
+const { UserGroupModel } = require('../models/userGroup.model');
+const UserService = require('../services/userService');
+const userService = new UserService(UserModel, UserGroupModel);
 const jwt = require('jsonwebtoken');
-const { loginUser } = require("../services/userService")
 
 loginRouter.post('/', async (req, res, next) => {
     const { login, password } = req.body;
     
     try{
-        const user = await loginUser(login, password);
+        const user = await userService.loginUser(login, password);
         if (user) {
             const token = jwt.sign({ login }, 'secret', { expiresIn: 180 });
             res.send(token);

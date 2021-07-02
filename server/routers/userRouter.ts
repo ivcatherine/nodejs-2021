@@ -1,14 +1,17 @@
 export {}
 const express = require("express");
 const checkToken = require("../utils/tokenChecker");
-const { createUser, getUserById, getUserListByLogin, addUsersToGroup, removeUser, updateUser } = require('../services/userService');
+const { UserModel } = require('../models/user.model');
+const { UserGroupModel } = require('../models/userGroup.model');
+const UserService = require('../services/userService');
 const { userUpdateSchema, userCreateSchema, userIdSchema, userSearchSchema, validator } = require('../utils/validation');
 const userRouter = express.Router();
+const userService = new UserService(UserModel, UserGroupModel);
 
 userRouter.get('/', checkToken, validator.query(userIdSchema), async (req, res, next) => {
     const { id } = req.query;
     try{
-        const user = await getUserById(id);
+        const user = await userService.getUserById(id);
         if (user) {
             res.status(200).json(user);
         } else {
@@ -23,7 +26,7 @@ userRouter.get('/search', checkToken, validator.query(userSearchSchema), async (
     const { starts_with, limits } = req.query;
     try{
         if (starts_with && limits) {
-            const userList = await getUserListByLogin(starts_with, limits);
+            const userList = await userService.getUserListByLogin(starts_with, limits);
             res.status(200).json(userList);
         }
     } catch(err) {
@@ -34,7 +37,7 @@ userRouter.get('/search', checkToken, validator.query(userSearchSchema), async (
 userRouter.post('/addUsersToGroup', checkToken, async (req, res, next) => {
     const { groupId, userIds } = req.body
     try{
-        const userGroupRecords = await addUsersToGroup(groupId, userIds)
+        const userGroupRecords = await userService.addUsersToGroup(groupId, userIds)
         res.status(200).json(userGroupRecords);
     } catch(err) {
         next(err)
@@ -44,7 +47,7 @@ userRouter.post('/addUsersToGroup', checkToken, async (req, res, next) => {
 userRouter.post('/', checkToken, validator.body(userCreateSchema), async (req, res, next) => {
     const { login, password, age } = req.body;
     try{
-        const user = await createUser({ login, password, age });
+        const user = await userService.createUser({ login, password, age });
         res.status(200).json(user);
     } catch(err) {
         next(err)
@@ -54,7 +57,7 @@ userRouter.post('/', checkToken, validator.body(userCreateSchema), async (req, r
 userRouter.put('/', checkToken, validator.body(userUpdateSchema), async (req, res, next) => {
     const {  id, login, password, age } = req.body;
     try{
-        const user = await updateUser({  id, login, password, age });    
+        const user = await userService.updateUser({  id, login, password, age });    
         res.status(200).json(user);
     } catch(err) {
         next(err)
@@ -64,7 +67,7 @@ userRouter.put('/', checkToken, validator.body(userUpdateSchema), async (req, re
 userRouter.delete('/', checkToken, validator.body(userIdSchema), async (req, res, next) => {
     const { id } = req.body;
     try{
-        await removeUser(id);
+        await userService.removeUser(id);
         res.status(200).json({ deletedId: id});
     } catch(err) {
         next(err)

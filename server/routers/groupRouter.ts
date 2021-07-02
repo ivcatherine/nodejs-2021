@@ -1,21 +1,24 @@
 export {}
 const express = require("express");
 const checkToken = require("../utils/tokenChecker");
-const { getAllGroups, getGroupById, createGroup, removeGroup, updateGroup } = require('../services/groupService');
+const GroupService = require('../services/groupService');
+const { GroupModel } = require('../models/group.model');
+const { UserGroupModel } = require('../models/userGroup.model');
 const { groupUpdateSchema, groupCreateSchema, groupGetSchema, groupDeleteSchema, validator } = require('../utils/validation');
 const groupRouter = express.Router();
+const groupService = new GroupService(GroupModel, UserGroupModel);
 
 groupRouter.get('/', checkToken, validator.query(groupGetSchema), async (req, res, next) => {
     const { id } = req.query;
     try{
         if (id) {
-                const group = await getGroupById(id);
+                const group = await groupService.getGroupById(id);
                 if (!group) {
                     next({status: 404, messages: ['Group not found']});
                 }
                 res.status(200).json(group);
         }
-        const groups = await getAllGroups();
+        const groups = await groupService.getAllGroups();
         if (!groups) {
             next({ status: 404,  messages: ['No groups found']});
         }
@@ -28,7 +31,7 @@ groupRouter.get('/', checkToken, validator.query(groupGetSchema), async (req, re
 groupRouter.post('/', checkToken, validator.body(groupCreateSchema), async (req, res, next) => {
     const { name, permissions } = req.body;
     try{
-        const group = await createGroup({ name, permissions });
+        const group = await groupService.createGroup({ name, permissions });
         res.status(200).json(group);
     }catch(err){
         next(err)
@@ -38,7 +41,7 @@ groupRouter.post('/', checkToken, validator.body(groupCreateSchema), async (req,
 groupRouter.put('/', checkToken, validator.body(groupUpdateSchema), async (req, res, next) => {
     const {  id, name, permissions } = req.body;
     try{
-        const group = await updateGroup({  id, name, permissions });    
+        const group = await groupService.updateGroup({  id, name, permissions });    
         res.status(200).json(group);
     }catch(err){
         next(err)
@@ -48,7 +51,7 @@ groupRouter.put('/', checkToken, validator.body(groupUpdateSchema), async (req, 
 groupRouter.delete('/', checkToken, validator.body(groupDeleteSchema), async (req, res, next) => {
     const { id } = req.body;
     try{
-        await removeGroup(id);
+        await groupService.removeGroup(id);
         res.status(200).json({ deletedId: id});
     }catch(err){
         next(err)
